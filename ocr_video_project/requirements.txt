@@ -1,0 +1,13 @@
+Flask>=2.0
+opencv-python
+pytesseract
+Pillow
+pandas
+openpyxl
+xlsxwriter
+SQLAlchemy
+pytest
+rapidfuzz
+python-dotenv
+tqdm
+Levenshtein
