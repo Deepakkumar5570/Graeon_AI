@@ -2,88 +2,177 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OCR Video Analysis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video OCR Transcript Pipeline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
-        .container { display: flex; gap: 20px; }
-        .video-box { flex: 2; position: relative; }
-        .transcript-box { flex: 1; height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
-        .segment { padding: 5px; cursor: pointer; border-bottom: 1px solid #eee; }
-        .segment:hover { background-color: #f0f0f0; }
-        .active { background-color: #e0f7fa; border-left: 4px solid #00bcd4; }
+        /* Custom styles for the overlay and scrolling */
         #overlay { 
-            position: absolute; bottom: 10%; left: 5%; right: 5%; 
-            background: rgba(0,0,0,0.7); color: white; padding: 10px; 
-            text-align: center; display: none; pointer-events: none;
+            position: absolute; 
+            bottom: 5%; 
+            left: 50%; 
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7); 
+            color: white; 
+            padding: 10px 20px; 
+            border-radius: 8px;
+            font-size: 1.2rem;
+            text-align: center; 
+            display: none; 
+            pointer-events: none; /* Allows clicks to pass through to the video */
+            max-width: 90%;
+            transition: opacity 0.3s ease-in-out;
         }
-        video { width: 100%; }
-        .controls { margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; }
+        .transcript-box { 
+            height: 60vh; 
+            overflow-y: scroll; 
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+        .segment { 
+            padding: 12px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #e5e7eb;
+            transition: background-color 0.2s;
+        }
+        .segment:hover { 
+            background-color: #f3f4f6; 
+        }
+        .active-segment { 
+            background-color: #e0f7fa; /* Light cyan */
+            border-left: 5px solid #00bcd4; 
+            font-weight: 600;
+        }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 p-6">
 
-    <h1>OCR Video Pipeline</h1>
+    <div class="max-w-7xl mx-auto space-y-8">
+        <header class="text-center">
+            <h1 class="text-4xl font-extrabold text-gray-900">OCR-on-Video Transcript Tool</h1>
+            <p class="text-lg text-gray-500 mt-2">Extract, search, and export timestamped text from video.</p>
+        </header>
 
-    <div class="controls">
-        <input type="file" id="videoInput" accept="video/mp4">
-        <button onclick="uploadVideo()">Process Video</button>
-        <span id="status"></span>
-        <br><br>
-        <input type="text" id="searchBox" placeholder="Search transcript..." onkeyup="filterTranscript()">
-        <button id="downloadBtn" style="display:none;" onclick="downloadExcel()">Download Excel</button>
-    </div>
-
-    <div class="container">
-        <div class="video-box">
-            <video id="mainVideo" controls></video>
-            <div id="overlay"></div>
+        <!-- Control Panel -->
+        <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
+            <div class="flex-grow flex items-center space-x-4 w-full md:w-auto">
+                <label for="videoInput" class="text-sm font-medium text-gray-700">Video File:</label>
+                <input type="file" id="videoInput" accept="video/mp4" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            </div>
+            <button onclick="uploadVideo()" id="processBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-150 w-full md:w-auto">
+                Process Video
+            </button>
+            <div id="status" class="text-sm font-medium text-gray-600">Status: Ready</div>
         </div>
-        <div class="transcript-box" id="transcript">
-            <p>Upload a video to see transcript here.</p>
+
+        <!-- Main Content Area: Video Player & Transcript -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Video Player Column -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-4 relative">
+                <video id="mainVideo" controls class="w-full rounded-lg"></video>
+                <div id="overlay"></div>
+                <p id="videoFileName" class="mt-2 text-center text-sm text-gray-500 hidden"></p>
+            </div>
+
+            <!-- Transcript Column -->
+            <div class="lg:col-span-1 bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 border-b">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-2">Transcript & Timeline</h2>
+                    <input type="text" id="searchBox" placeholder="Search keywords..." onkeyup="loadTranscript()" 
+                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                
+                <div class="transcript-box p-4" id="transcript">
+                    <p class="text-gray-500 italic text-center">Upload and process a video to generate the transcript timeline here.</p>
+                </div>
+
+                <div class="p-4 border-t text-center">
+                    <button id="downloadBtn" onclick="downloadExcel()" disabled
+                            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition duration-150 disabled:opacity-50">
+                        Download Excel Report
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let currentTaskId = null;
+        let videoFileName = null;
         let transcriptData = [];
+        const video = document.getElementById('mainVideo');
+        const overlay = document.getElementById('overlay');
+        const statusEl = document.getElementById('status');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const searchBox = document.getElementById('searchBox');
+        const processBtn = document.getElementById('processBtn');
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        }
 
         async function uploadVideo() {
             const fileInput = document.getElementById('videoInput');
             const file = fileInput.files[0];
-            if (!file) return alert("Select a file first");
+            if (!file) {
+                statusEl.innerText = "Status: Please select a file first.";
+                return;
+            }
 
             const formData = new FormData();
             formData.append('file', file);
 
-            document.getElementById('status').innerText = "Uploading...";
-            
-            const res = await fetch('/api/process', { method: 'POST', body: formData });
-            const data = await res.json();
-            currentTaskId = data.task_id;
-            
-            // Set video source locally so user can watch while processing
-            const vidUrl = URL.createObjectURL(file);
-            document.getElementById('mainVideo').src = vidUrl;
+            // Update UI state
+            statusEl.innerText = "Status: Uploading and starting processing...";
+            processBtn.disabled = true;
+            videoFileName = file.name;
+            document.getElementById('videoFileName').innerText = videoFileName;
 
-            pollStatus();
+            // Display video immediately
+            const vidUrl = URL.createObjectURL(file);
+            video.src = vidUrl;
+            document.getElementById('videoFileName').classList.remove('hidden');
+
+
+            try {
+                const res = await fetch('/api/process', { method: 'POST', body: formData });
+                const data = await res.json();
+                currentTaskId = data.task_id;
+                
+                statusEl.innerText = `Status: Processing (Task ID: ${currentTaskId})`;
+                pollStatus();
+
+            } catch (error) {
+                statusEl.innerText = "Status: Error starting process.";
+                processBtn.disabled = false;
+            }
         }
 
         function pollStatus() {
             const interval = setInterval(async () => {
                 const res = await fetch(`/api/status/${currentTaskId}`);
                 const data = await res.json();
-                document.getElementById('status').innerText = `Status: ${data.status}`;
+                
+                statusEl.innerText = `Status: ${data.status} (${data.progress_percent}%)`;
 
                 if (data.status === 'completed') {
                     clearInterval(interval);
+                    statusEl.innerText = "Status: Completed! Loading transcript...";
+                    processBtn.disabled = false;
+                    downloadBtn.disabled = false;
                     loadTranscript();
-                    document.getElementById('downloadBtn').style.display = 'inline-block';
                 }
-            }, 2000);
+            }, 3000); // Poll every 3 seconds
         }
 
         async function loadTranscript() {
-            const res = await fetch(`/api/transcript/${currentTaskId}`);
+            if (!currentTaskId) return;
+
+            const q = searchBox.value;
+            const res = await fetch(`/api/transcript/${currentTaskId}?q=${q}`);
             const data = await res.json();
             transcriptData = data.segments;
             renderTranscript(transcriptData);
@@ -92,10 +181,15 @@
         function renderTranscript(segments) {
             const container = document.getElementById('transcript');
             container.innerHTML = "";
+            if (segments.length === 0) {
+                container.innerHTML = `<p class="text-gray-500 italic text-center">No segments found ${searchBox.value ? 'for this search.' : '.'}</p>`;
+                return;
+            }
+
             segments.forEach(seg => {
                 const div = document.createElement('div');
-                div.className = 'segment';
-                div.innerHTML = `<b>${formatTime(seg.start_ts)}</b>: ${seg.text}`;
+                div.className = 'segment text-sm';
+                div.innerHTML = `<b class="text-indigo-600">${formatTime(seg.start_ts)} - ${formatTime(seg.end_ts)}</b>: ${seg.text}`;
                 div.onclick = () => seekVideo(seg.start_ts);
                 div.dataset.start = seg.start_ts;
                 div.dataset.end = seg.end_ts;
@@ -103,40 +197,30 @@
             });
         }
 
-        function formatTime(ms) {
-            const s = Math.floor(ms / 1000);
-            return new Date(s * 1000).toISOString().substr(14, 5);
-        }
-
         function seekVideo(ms) {
-            const video = document.getElementById('mainVideo');
             video.currentTime = ms / 1000;
             video.play();
         }
         
         function downloadExcel() {
-            window.location.href = `/api/report/excel?task_id=${currentTaskId}`;
+            if (currentTaskId) {
+                window.location.href = `/api/report/excel?task_id=${currentTaskId}`;
+            }
         }
 
-        function filterTranscript() {
-            const q = document.getElementById('searchBox').value.toLowerCase();
-            const filtered = transcriptData.filter(s => s.text.toLowerCase().includes(q));
-            renderTranscript(filtered);
-        }
-
-        // Overlay Logic
-        const video = document.getElementById('mainVideo');
-        const overlay = document.getElementById('overlay');
-
+        // --- Real-time Overlay and Timeline Sync Logic ---
         video.ontimeupdate = () => {
+            if (transcriptData.length === 0) return;
+
             const now = video.currentTime * 1000;
             const currentSeg = transcriptData.find(s => now >= s.start_ts && now <= s.end_ts);
             
-            // Highlight list item
+            // Highlight list item and scroll
             document.querySelectorAll('.segment').forEach(div => {
-                div.classList.remove('active');
+                div.classList.remove('active-segment');
                 if (currentSeg && div.dataset.start == currentSeg.start_ts) {
-                    div.classList.add('active');
+                    div.classList.add('active-segment');
+                    // Scroll into view gently
                     div.scrollIntoView({ behavior: "smooth", block: "center" });
                 }
             });
@@ -145,8 +229,14 @@
             if (currentSeg) {
                 overlay.innerText = currentSeg.text;
                 overlay.style.display = 'block';
+                overlay.style.opacity = 1;
             } else {
-                overlay.style.display = 'none';
+                // Fade out when no text is active
+                overlay.style.opacity = 0;
+                // Wait for fade-out before hiding completely
+                setTimeout(() => {
+                    if (overlay.style.opacity == 0) overlay.style.display = 'none';
+                }, 300); 
             }
         };
     </script>
