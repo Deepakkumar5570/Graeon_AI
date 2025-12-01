@@ -1,9 +1,9 @@
-OCR-on-Video Pipeline
+## OCR-on-Video Pipeline
 
 This repository contains a reproducible pipeline for extracting, aggregating, and reporting timestamped text from a video using Python (Flask, OpenCV, Tesseract, SQLite).
 
 ## Getting Started
- -  Prerequisites
+- Prerequisites
 
 You must have Python 3.8+ installed.
 
@@ -63,16 +63,17 @@ Action
 Expected Result
 
 Test 1: Health Check
-
+```
 Navigate to http://localhost:5000/api/health
-
+```
 Returns {"status": "OK", ...}
-
+```
 Test 2: Video Processing
 
 1. Go to http://localhost:5000/. 2. Click "Process Video".
-
-Status changes to "Processing" and then "Completed".
+```
+```
+- Status changes to "Processing" and then "Completed".
 
 Test 3: Transcript API
 
@@ -96,7 +97,7 @@ We use pytest for unit testing the core functions (preprocess_frame and utility 
  (venv) PS F:\Graeon_AI\ocr_video_project> pytest
 ```
 
-
+```
 If Tesseract is not found, the test_ocr_run_and_filtering test is automatically skipped.
 
 📊 Accuracy and Limitations
