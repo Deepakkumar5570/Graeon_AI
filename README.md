@@ -1,4 +1,20 @@
-# OCR-on-Video Transcript Tool
+<!-- <p align="center">
+  <img src="YOUR_BANNER_IMAGE_URL_HERE" width="100%" alt="Graeon.ai — OCR on Video">
+</p> -->
+
+<h1 align="center">🎥 Graeon.ai — OCR on Video</h1>
+<h3 align="center">Intelligent Video Text Extraction using Computer Vision + Tesseract OCR</h3>
+
+<p align="center">
+<img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge">
+<img src="https://img.shields.io/badge/Flask-Framework-black?style=for-the-badge">
+<img src="https://img.shields.io/badge/Tesseract-OCR-green?style=for-the-badge">
+<img src="https://img.shields.io/badge/OpenCV-Computer%20Vision-red?style=for-the-badge"><br>
+<img src="https://img.shields.io/github/stars/Deepakkumar5570/Graeon_AI?style=for-the-badge">
+<img src="https://img.shields.io/github/issues/Deepakkumar5570/Graeon_AI?style=for-the-badge">
+<img src="https://img.shields.io/github/license/Deepakkumar5570/Graeon_AI?style=for-the-badge">
+</p>
+
 
 ## Project Summary
 
@@ -15,17 +31,84 @@ This project is intended as a lightweight, local video OCR pipeline useful for c
 - **Export**: Download a report as an Excel workbook (transcript + task summary).
 - **Local DB**: All tasks, raw frame OCR outputs, and aggregated segments are stored in `sqlite3`.
 
-## Repo Structure (important files)
+### 🔧 Backend
+- Video upload & background processing  
+- Frame-wise OCR (Tesseract via `pytesseract`)  
+- Grayscale, denoise, threshold preprocessing  
+- Levenshtein similarity for segment merging  
+- SQLite database for persistence  
+- Excel report generation  
 
-- `app.py` : Flask application, routes, upload handling, status polling, report export.
-- `ocr_engine.py` : Video processing pipeline: preprocessing, OCR per frame, aggregation logic.
-- `database.py` : SQLite helper and schema initialization (`tasks`, `frames`, `segments`).
-- `templates/index.html` : Frontend UI (upload, player, transcript panel, overlay).
-- `uploads/` : Saved uploaded video files.
-- `output/` : Generated Excel reports.
-- `requirements.txt` : Python dependencies (ensure to validate contents). 
-- `test_tesseract.py` and `tests/` : Small tests and examples for preprocessing & Levenshtein checks.
+### 🖥 Frontend
+- Clean HTML UI  
+- Video player + transcript sidebar  
+- Searchable transcript  
+- Auto polling for task status  
+- Excel download button  
 
+
+
+---
+
+# 🧭 Table of Contents
+- [Project Overview](#project-overview)
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation & Setup](#installation--setup)
+- [Backend Setup](#backend-setup)
+- [Frontend Setup](#frontend-setup)
+- [Running the Application](#running-the-application)
+- [API Documentation](#api-documentation)
+- [Database Schema](#database-schema)
+- [How It Works](#how-it-works)
+- [Configuration Options](#configuration-options)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+- [Security Notes](#security-notes)
+- [Future Improvements](#future-improvements)
+- [Developer Guide](#developer-guide)
+
+---
+
+## Architecture
+```
+┌────────────────────────────┐
+│        Frontend UI         │
+│     (templates/index.html) │
+└──────────────┬─────────────┘
+               │ AJAX Requests
+               ▼
+┌────────────────────────────┐
+│         Flask API          │
+│         app.py             │
+└──────────────┬─────────────┘
+               │
+               ├────────► SQLite (tasks, frames, segments)
+               │
+               ├────────► Tesseract OCR Engine
+               │
+               └────────► File Storage (uploads/, output/)
+
+```
+
+## Project Structure
+```
+Graeon_AI/
+├── app.py               # Main Flask application
+├── ocr_engine.py        # Video processing + OCR pipeline
+├── database.py          # Database schema + helper functions
+├── requirements.txt     # Backend dependencies
+├── templates/
+│   └── index.html       # Web UI
+├── uploads/             # Uploaded videos
+├── output/              # Excel reports
+├── test_tesseract.py    # Tesseract installation tester
+└── tests/               # Unit tests
+
+```
 ## How It Works — Processing Pipeline (step-by-step)
 
 1. User uploads a video via the web UI or `POST /api/process`.
@@ -71,6 +154,8 @@ Invoke-WebRequest "http://127.0.0.1:5000/api/report/excel?task_id=<task-id>" -Ou
 ## Requirements & Setup
 
 - Recommended Python: `3.9` — `3.11` (verify compatibility)
+- Tesseract OCR installed
+- Pip + virtual environment recommended
 - Required Python packages (typical):
   - `flask`
   - `opencv-python` (cv2)
@@ -79,21 +164,9 @@ Invoke-WebRequest "http://127.0.0.1:5000/api/report/excel?task_id=<task-id>" -Ou
   - `openpyxl`
   - `python-Levenshtein`
   - `pytest` (for tests)
-
-Install dependencies (create a virtualenv first). On Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-If `requirements.txt` is missing/partial, install manually:
-
-```powershell
-pip install flask opencv-python pytesseract pandas openpyxl python-Levenshtein pytest
-```
+## Installation & Setup
+- Install dependencies (create a virtualenv first). On Windows PowerShell:
+ ## 
 
 ### Tesseract OCR (external dependency)
 
@@ -102,42 +175,174 @@ This project uses Tesseract as an external executable. On Windows:
 1. Download & install Tesseract from https://github.com/UB-Mannheim/tesseract/wiki or https://github.com/tesseract-ocr/tesseract
 2. Typical path on Windows: `C:\Program Files\Tesseract-OCR\tesseract.exe`.
 3. Set the path in `ocr_engine.py` (already present):
-
-```python
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-```
+- For macOS
+  ```
+  brew install tesseract
+  ```
+- For Linux
+   ```
+  sudo apt update
+  sudo apt install tesseract-ocr
+  ```
+- Verify
+  ```
+  tesseract --version
+  ```
+  ```python
+  pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+   ```
 
 4. Verify installation:
 
-```powershell
-python test_tesseract.py
-# or
-tesseract --version
-```
+   ```powershell
+     tesseract --version
+   ```
 
-## Running Locally
 
-Start the Flask app (development mode):
+- Backend Setup
+  ```
+  git clone https://github.com/Deepakkumar5570/Graeon_AI
+  cd Graeon_AI/ocr_video_project
+- Create Virtual env.
+   ```
+   python -m venv .venv
+- Activate(Windows):
+   ```
+    venv\Scripts\activate
+- For macOS/Linux:
+   ```
+   source .venv/bin/activate
+- Install dependencies:
+    ```
+     pip install -r requirements.txt
+If `requirements.txt` is missing/partial, install manually:
 
-```powershell
-python app.py
-```
+- powershell
+  ```
+  pip install flask opencv-python pytesseract pandas openpyxl python-Levenshtein pytest
 
+## Tests
+Run unit tests with `pytest` from repo root:
+    ```
+       pytest
+    ```
+
+   
+
+Some tests (e.g., OCR runtime) may be skipped if Tesseract is not available. The `test_tesseract.py` file can be used to validate Tesseract path.
+- Run Tesseract test:
+   ```
+   python test_tesseract.py
+## Frontend Setup
+ - No separate setup.
+ - UI is rendered directly through Flask.
+## Running the Application
+- Start the Server
+   ```
+    python app.py
+ - Your app will start at:
+   ```
+   👉 http://127.0.0.1:5000
+   ```
 Then open `http://127.0.0.1:5000/` in your browser. Upload a video, and the UI will start processing and poll for task status.
 
 Notes:
-- Uploaded files are saved to `uploads/` as `<task_id>_<filename>`.
-- Generated Excel reports are saved to `output/report_<task_id>.xlsx` and returned by the `send_file` response.
 
-## Tests
 
-Run unit tests with `pytest` from repo root:
+- Using the App (Uploaded files are saved to `uploads/` as `<task_id>_<filename>`.)
+- Upload a video
+- Wait for processing
+- Watch video + transcript
+- Search inside transcript
+- Download Excel report  (Generated Excel reports are saved to `output/report_<task_id>.xlsx` and returned by the   `send_file` response.)
 
-```powershell
-pytest -q
-```
+## API Documentation
+- Base URL 
+   ```
+   http://127.0.0.1:5000/api
+- Health Check
+  ```
+  GET /api/health
+- Upload Video
+   ```
+   POST /api/process
+  Content-Type: multipart/form-data
+  file=@video.mp4
+- Response
+   ```
+    {
+  "task_id": "UUID",
+  "status": "processing"
+  }
+- Task Status
+   ```
+    GET /api/status/<task_id>
+- Transcript
+   ```
+    GET /api/transcript/<task_id>?q=search
+- Download Excel
+   ```
+    GET /api/report/excel?task_id=<task_id>
 
-Some tests (e.g., OCR runtime) may be skipped if Tesseract is not available. The `test_tesseract.py` file can be used to validate Tesseract path.
+## Database Schema
+### 🗄 tasks Table
+
+| Column      | Type      | Description                     |
+|-------------|-----------|---------------------------------|
+| task_id     | TEXT      | Primary Key (UUID)              |
+| filename    | TEXT      | Original filename               |
+| status      | TEXT      | processing / completed / failed |
+| created_at  | TIMESTAMP | Start time                      |
+| updated_at  | TIMESTAMP | Last update time                |
+
+   
+### 🗄 tasks Table
+
+| Column      | Type      | Description                     |
+|-------------|-----------|---------------------------------|
+| task_id     | TEXT      | Primary Key (UUID)              |
+| filename    | TEXT      | Original filename               |
+| status      | TEXT      | processing / completed / failed |
+| created_at  | TIMESTAMP | Start time                      |
+| updated_at  | TIMESTAMP | Last update time                |
+
+
+ ### 🗄 frames Table
+
+| Column        | Type      | Description                               |
+|---------------|-----------|-------------------------------------------|
+| id            | INTEGER   | Primary Key (auto-increment)              |
+| task_id       | TEXT      | Foreign Key → tasks.task_id               |
+| frame_number  | INTEGER   | Frame index                               |
+| timestamp_ms  | INTEGER   | Timestamp of frame in milliseconds        |
+| ocr_text      | TEXT      | Full OCR output from this frame           |
+| ocr_snippet   | TEXT      | First 200 chars (optional summary)        |
+| confidence    | REAL      | OCR confidence score (0.0 – 1.0)          |
+| bbox_json     | TEXT      | Bounding boxes in JSON format             |
+| processed_at  | TIMESTAMP | When this frame OCR processing finished   |
+
+
+## How It Works
+### Frame Extraction
+- Extract 1 frame per second (configurable).
+### Preprocessing
+- Resize
+- Grayscale
+- Denoise
+- Threshold
+
+
+## ⚙️Configuration Options
+
+| Option                 | Description                           |
+|------------------------|---------------------------------------|
+| `frame_skip`           | Controls how many frames to skip (affects speed vs accuracy) |
+| `tesseract_cmd`        | Absolute system path to the Tesseract OCR executable |
+| `similarity_threshold` | Levenshtein similarity required to merge frames into segments |
+| `min_confidence`       | Minimum OCR confidence required to include a word |
+
+
+
 
 ## Troubleshooting & Common Issues
 
